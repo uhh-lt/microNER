@@ -62,13 +62,13 @@ def get_model_3cnn():
                              activation="relu",
                              strides=1,
                              name='charcnn_' + str(sz)))(embed_char_out)
-        conv = TimeDistributed(MaxPooling1D(3, name = 'charcnn_maxpool'))(conv)
-        # conv = TimeDistributed(GlobalMaxPooling1D(name = 'charcnn_maxpool'))(conv)
+        # conv = TimeDistributed(MaxPooling1D(3, name = 'charcnn_maxpool'))(conv)
+        conv = TimeDistributed(GlobalMaxPooling1D(name = 'charcnn_maxpool'))(conv)
         conv = TimeDistributed(Flatten())(conv)
         conv_blocks.append(conv)
     output = concatenate([words_input, casing, conv_blocks[0], conv_blocks[1], conv_blocks[2]])
     output = Bidirectional(LSTM(200, return_sequences=True, dropout=0.50, recurrent_dropout=0.5, name='token_lstm'))(output)
-    output = TimeDistributed(Dense(len(label2Idx), activation="relu", name = 'token_dense'))(output)
+    # output = TimeDistributed(Dense(len(label2Idx), activation="relu", name = 'token_dense'))(output)
     crf = CRF(len(label2Idx), name = 'crf')
     output = crf(output)
     model = Model(inputs=[words_input, casing_input, character_input], outputs=[output])
