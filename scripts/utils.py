@@ -6,6 +6,7 @@ import numpy as np
 import math
 import models
 import copy
+import json
 
 def getCasing(word, caseLookup):
     
@@ -85,7 +86,7 @@ def get_sentences_germeval(path, level2 = False):
 
 
 # preproecessing data from Conll
-def get_sentences_conll(filename):
+def get_sentences_conll(filename, cut_len = 100):
     '''
         -DOCSTART- -X- -X- O
 
@@ -106,22 +107,27 @@ def get_sentences_conll(filename):
     return format :
     [ ['EU', 'B-ORG'], ['rejects', 'O'], ['German', 'B-MISC'], ['call', 'O'], ['to', 'O'], ['boycott', 'O'], ['British', 'B-MISC'], ['lamb', 'O'], ['.', 'O'] ]
     '''
-    f = open(filename,'rb')
+    f = open(filename,'r', encoding='UTF-8')
     sentences = []
     sentence = []
     for line in f:
+        line = line.strip()
+        
+        if len(line) == 0:
+            if len(sentence):
+                sentences.append(sentence[:cut_len])
+            sentence=[]
+            continue
+        
         splits = line.split()
-        try:
-            word=splits[0].decode()
-            if word=='-DOCSTART-':
-                continue
-            label=splits[-1].decode()
-            temp=[word,label]
-            sentence.append(temp)
-        except Exception as e:
-            if len(sentence)!=0:
-                sentences.append(sentence)
-                sentence=[]
+        
+        word=splits[0]
+        if word=='-DOCSTART-':
+            continue
+        label=splits[-1]
+        temp=[word,label]
+        sentence.append(temp)
+    f.close()
     return sentences
 
 
@@ -285,11 +291,16 @@ class F1History(Callback):
         self.model_file = model_file
         self.devSet = devSet
         self.level2 = level2
+        self.max_f1 = 0
+        
+    def save_model(self):
+        self.model.save(self.model_file)
+        with open(self.model_file + ".indexes", "w") as f:
+            json.dump([models.idx2Label, models.label2Idx, models.char2Idx, models.case2Idx], f)
                  
     def on_train_begin(self, logs={}):
         self.acc = []
         self.f1_scores = []
-        self.max_f1 = 0
 
     def on_epoch_end(self, epoch, logs={}):
         self.acc.append(logs.get('val_acc'))
@@ -299,5 +310,5 @@ class F1History(Callback):
         if epoch > -1 and f1 > self.max_f1:
             print("\nNew maximum F1 score: " + str(f1) + " (before: " + str(self.max_f1) + ") Saving to " + self.model_file)
             self.max_f1 = f1
-            self.model.save(self.model_file)
+            self.save_model()
 
