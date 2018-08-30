@@ -73,7 +73,8 @@ def get_sentences_germeval(path, level2 = False):
                 continue
             if level2:
                 # word, label 1st level, label 2nd level
-                temp = [splits[1],splits[2],splits[3]]
+                # temp = [splits[1],splits[2],splits[3]]
+                temp = [splits[1],splits[3]]
             else:
                 # word, label 1st level
                 temp = [splits[1],splits[2]]
