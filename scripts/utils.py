@@ -167,11 +167,12 @@ def predict_sequences(model, sentences, level2 = False):
 
 
 class NerSequence(Sequence):
-    def __init__(self, sentence_data, shuffle_data = False, batch_size=32, level2 = False):
+    def __init__(self, sentence_data, shuffle_data = False, batch_size=32, level2 = False, add_marks = False):
         self.sentence_data = sentence_data
         self.shuffle_data = shuffle_data
         self.batch_size = batch_size
         self.level2 = level2
+        self.add_marks = add_marks
         self.indices = np.arange(len(self.sentence_data))
         if self.shuffle_data:
             np.random.shuffle(self.indices)
@@ -240,14 +241,16 @@ class NerSequence(Sequence):
                     # char
                     temp_char2=[]
                     all_chars = list(word)
-                    all_chars.insert(0, "<W>")
-                    all_chars.append("</W>")
                     
-                    if w_i == 0:
-                        all_chars.insert(0, "<S>")
-                        
-                    if w_i == (sequence_length - 1):
-                        all_chars.append("</S>")
+                    if self.add_marks:
+                        all_chars.insert(0, "<W>")
+                        all_chars.append("</W>")
+
+                        if w_i == 0:
+                            all_chars.insert(0, "<S>")
+
+                        if w_i == (sequence_length - 1):
+                            all_chars.append("</S>")
                     # print(all_chars)
                     
                     for char in all_chars:
@@ -263,7 +266,7 @@ class NerSequence(Sequence):
                     # word_vector = models.ft.get_word_vector(word)
                     temp_word.append(word_vector)
 
-            temp_char = pad_sequences(temp_char, models.nb_char_embeddings, padding = 'post', truncating = 'post')
+            temp_char = pad_sequences(temp_char, models.nb_char_embeddings)
             word_embeddings.append(temp_word)
             case_embeddings.append(temp_casing)
             char_embeddings.append(temp_char)
