@@ -37,12 +37,15 @@ def getCasing(word, caseLookup):
    
     return caseLookup[casing]
 
-# changing all deriv and part to misc. with BIO
+# changing all -deriv to MISC. Removing all -part 
 def modify_labels(dataset):
     bad_labels = ['I-PERderiv','I-OTHpart','B-ORGderiv', 'I-OTH','B-OTHpart','B-LOCderiv','I-LOCderiv','I-OTHderiv','B-PERderiv','B-OTHderiv','B-PERpart','I-PERpart','I-LOCpart','B-LOCpart','I-ORGpart','I-ORGderiv','B-ORGpart','B-OTH']
     for sentence in dataset:
         for word in sentence:
             label = word[1]
+            if label.endswith('part'):
+                word[1] = 'O'
+                continue
             if label in bad_labels:
                 first_char = label[0]
                 if first_char == 'B' :
@@ -50,8 +53,8 @@ def modify_labels(dataset):
                 else:
                     word[1] = 'I-MISC'
     return dataset
-                
-
+   
+    
 def get_sentences_germeval(path, level2 = False):
     sentences = []
     with open(path, 'r', encoding = 'UTF-8') as f:

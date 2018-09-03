@@ -23,6 +23,7 @@ labelOuter2Idx = None
 idx2LabelOuter = None
 # model
 
+# with pre-final dense
 
 def get_model_lstm_v2():
     caseEmbeddings = np.identity(len(case2Idx), dtype='float32')
@@ -61,6 +62,7 @@ def get_model_2lstm_v2():
     model.summary()
     return(model)
 
+# without pre-final dense
 
 def get_model_lstm():
     caseEmbeddings = np.identity(len(case2Idx), dtype='float32')
