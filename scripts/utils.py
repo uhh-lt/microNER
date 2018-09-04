@@ -1,10 +1,10 @@
-from validation import compute_f1
+from scripts.validation import compute_f1
 from keras.utils import Sequence, to_categorical
 from keras.callbacks import Callback
 from keras.preprocessing.sequence import pad_sequences
 import numpy as np 
 import math
-import models
+import scripts.models as models
 import copy
 import json
 

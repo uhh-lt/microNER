@@ -1,6 +1,7 @@
 # microner
 embeddings/*.bin
 data/*
+models/backup/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

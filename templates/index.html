@@ -1,0 +1,17 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}microNER{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-fixed-top">
+  <!-- ... -->
+</div>
+{% endblock %}
+
+{% block content %}
+  <h1>microNER</h1>
+  <ul>
+  {% for model in g.model_files %}
+    <li class="models">{{ model }}</li>
+  {% endfor %}
+  </ul>
+{% endblock %}

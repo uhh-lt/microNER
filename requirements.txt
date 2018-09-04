@@ -3,4 +3,5 @@ keras
 tensorflow
 scikit-learn
 Flask
+flask-bootstrap
 gunicorn

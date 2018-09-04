@@ -1,15 +1,16 @@
-from flask import Flask, request, jsonify, make_response
-import os
-import logging
-
-app = Flask(__name__)
-
 from datetime import timedelta
-from flask import make_response, request, current_app
 from functools import update_wrapper
 
-ner_model_files = [name for name in os.listdir("models")]
-ner_embedding_files = [name for name in os.listdir("embeddings")]
+from flask import Flask, request, jsonify, make_response, current_app, render_template, g
+from flask_bootstrap import Bootstrap
+import os
+import scripts.ner as ner
+
+
+# create the app
+app = Flask(__name__)
+Bootstrap(app)
+
 
 class InvalidUsage(Exception):
     status_code = 400
@@ -41,9 +42,9 @@ def crossdomain(origin=None, methods=None, headers=None,
     """See: http://flask.pocoo.org/snippets/56/"""
     if methods is not None:
         methods = ', '.join(sorted(x.upper() for x in methods))
-    if headers is not None and not isinstance(headers, basestring):
+    if headers is not None and not isinstance(headers, str):
         headers = ', '.join(x.upper() for x in headers)
-    if not isinstance(origin, basestring):
+    if not isinstance(origin, str):
         origin = ', '.join(origin)
     if isinstance(max_age, timedelta):
         max_age = max_age.total_seconds()
@@ -78,44 +79,68 @@ def crossdomain(origin=None, methods=None, headers=None,
     return decorator
 
 
-@app.route('/', methods=['GET', 'POST', 'OPTIONS'])
+def get_model_files():
+    ner_model_files = [name for name in os.listdir("models") if name.endswith('h5')]
+    return(ner_model_files)
+
+
+
+@app.route('/', methods=['GET'])
+def list_models():
+    g.model_files = get_model_files()
+    return render_template('index.html')
+
+
+
+@app.route('/api', methods=['GET'])
 @crossdomain(origin='*', headers=['Content-Type'])
-def analyze():
-    
-    if request.method == 'OPTIONS':
-        resp = make_response('')
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Request-Method'] = 'POST'
-        return resp
-    
-    if request.method == 'POST':
+def annotate():
+
+    if request.method == 'GET':
 
         try:
-            docdata = request.get_json();
-            model = docdata["model"]
-            lang = model.split('.')[0]
-            if model not in ner_model_files:
-                raise InvalidUsage("Unknown model: " + model + " (available models: " + ", ".join(ner_model_files) + ")", status_code=404)
-            if "microner." + lang + ".h5" not in ner_embedding_files:
-                raise InvalidUsage("fastText embedding unavailable for lang: " + lang, status_code=404)
+            jsondata = request.get_json()
+            #metadata = jsondata["meta"]
+            #model = metadata["model"]
+            #tokenize = metadata["tokenize"]  # type/value, default
+            #sentences = jsondata["data"]
 
-            # load tasttext model
+            sample_data = ['Ich bin Sabine Müllers erster CDU-Generalsekretär.',
+                           'Tom F. Manteufel wohnt auf der Insel Borkum.']
+            sentences = [ner.tokenize(s) for s in sample_data]
+            model = 'germeval.h5'
 
-            # load keras model
+        except TypeError:
+            return jsonify({'error': 'Invalid request format.'})
 
-            # if tokenize == true tokenize
+        if not 'model_files' in g:
+            g.model_files = get_model_files()
 
-            # predict
+        if model not in g.model_files:
+            return jsonify({'error' : 'Unknown model: ' + model})
 
-            # format output
+        app.logger.error('HERE\n\n\n\n\n\n')
 
-            result = []
-            for sentence in docdata["sentences"]:
-                result.append(chunker.annotate(sentence))
-        except:
-            result = "Error: invalid request format."
+        # load keras model
+        if not 'ner_model' in g:
+            g.ner_model = ner.load_ner_model(model)
 
-        return jsonify({'result': result})
+        app.logger.error('MODEL LOADED\n\n\n\n\n\n')
+
+        # if tokenize == true tokenize
+
+        # predict
+
+        result = ner.predict(g.ner_model, sentences)
+
+        app.logger.error('PREDICTED\n\n\n\n\n\n')
+
+        print(result)
+
+        response = jsonify({'result': result})
+
+        return response
+
 
 if __name__ == "__main__":
     app.run(threaded = True)
