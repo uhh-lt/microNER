@@ -99,11 +99,11 @@ def annotate():
     if request.method == 'POST':
 
         try:
-            jsondata = request.get_json()
-            #metadata = jsondata["meta"]
+            json_data = request.get_json()
+            #metadata = json_data["meta"]
             #model = metadata["model"]
             #tokenize = metadata["tokenize"]  # type/value, default
-            #sentences = jsondata["data"]
+            #sentences = json_data["data"]
 
             sample_data = ['Ich bin Sabine Müllers erster CDU-Generalsekretär.',
                            'Tom F. Manteufel wohnt auf der Insel Borkum.']
@@ -119,13 +119,13 @@ def annotate():
         if model not in g.model_files:
             return jsonify({'error' : 'Unknown model: ' + model})
 
-        app.logger.error('HERE\n\n\n\n\n\n')
+        app.logger.info('Loading model ...')
 
         # load keras model
         if not 'ner_model' in g:
             g.ner_model = ner.load_ner_model(model)
 
-        app.logger.error('MODEL LOADED\n\n\n\n\n\n')
+        app.logger.info('Model loaded.')
 
         # if tokenize == true tokenize
 
@@ -133,14 +133,11 @@ def annotate():
 
         result = ner.predict(g.ner_model, sentences)
 
-        app.logger.error('PREDICTED\n\n\n\n\n\n')
+        app.logger.info('Result:' + str(result))
 
-        print(result)
+        json_response = {"data": jsonify(result)}
 
-        # response = jsonify({'result': result})
-        response = {'result': result}
-
-        return response
+        return jsonify(json_response)
 
 
 if __name__ == "__main__":
