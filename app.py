@@ -92,11 +92,11 @@ def list_models():
 
 
 
-@app.route('/api', methods=['GET'])
+@app.route('/api', methods=['POST'])
 @crossdomain(origin='*', headers=['Content-Type'])
 def annotate():
 
-    if request.method == 'GET':
+    if request.method == 'POST':
 
         try:
             jsondata = request.get_json()
@@ -137,7 +137,8 @@ def annotate():
 
         print(result)
 
-        response = jsonify({'result': result})
+        # response = jsonify({'result': result})
+        response = {'result': result}
 
         return response
 
