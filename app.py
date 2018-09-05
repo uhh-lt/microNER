@@ -1,15 +1,23 @@
 from datetime import timedelta
 from functools import update_wrapper
 
+from jsonschema import validate, ValidationError
+
 from flask import Flask, request, jsonify, make_response, current_app, render_template, g
 from flask_bootstrap import Bootstrap
 import os
 import scripts.ner as ner
-
+import scripts.models as models
+import logging
+import tensorflow as tf
+import fastText
 
 # create the app
 app = Flask(__name__)
 Bootstrap(app)
+# app.logger.setLevel(logging.INFO)
+
+
 
 
 class InvalidUsage(Exception):
@@ -81,8 +89,26 @@ def crossdomain(origin=None, methods=None, headers=None,
 
 def get_model_files():
     ner_model_files = [name for name in os.listdir("models") if name.endswith('h5')]
-    return(ner_model_files)
+    return ner_model_files
 
+
+# get models
+ner_models = {}
+ner_graphs = {}
+for model_file in ["germeval.h5"]:
+# for model_file in get_model_files():
+    app.logger.info('Loading NER model ' + model_file)
+    if model_file.startswith("conll"):
+        max_sequence = 100
+    else:
+        max_sequence = 56
+    ner_models[model_file] = ner.NerModel(model_file, max_sequence)
+    ner_graphs[model_file] = tf.get_default_graph()
+
+
+app.logger.info('Loading fastText model.')
+models.ft = fastText.load_model("embeddings/wiki.de.bin")
+app.logger.info('Done.')
 
 
 @app.route('/', methods=['GET'])
@@ -100,42 +126,52 @@ def annotate():
 
         try:
             json_data = request.get_json()
-            #metadata = json_data["meta"]
-            #model = metadata["model"]
-            #tokenize = metadata["tokenize"]  # type/value, default
-            #sentences = json_data["data"]
+            schema = {
+                "type": "object",
+                "properties": {
+                    "meta": {"type": "object", "properties": {
+                        "model": {"type": "string"}
+                    }},
+                    "data": {"type": "object", "properties": {
+                        "sentences": {"type": "array", "items": {"type": "string"}, "maxItems": 5000},
+                        "tokens": {"type": "array",
+                                   "items": {"type": "array", "items": {"type": "string"}, "maxItems": 100},
+                                   "maxItems": 5000}
+                    }}
+                }
+            }
+            validate(json_data, schema)
+        except ValidationError:
+            return jsonify({'errors': 'Invalid request format.'})
 
-            sample_data = ['Ich bin Sabine Müllers erster CDU-Generalsekretär.',
-                           'Tom F. Manteufel wohnt auf der Insel Borkum.']
-            sentences = [ner.tokenize(s) for s in sample_data]
-            model = 'germeval.h5'
+        metadata = json_data["meta"]
+        model = metadata["model"]
 
-        except TypeError:
-            return jsonify({'error': 'Invalid request format.'})
+        if model not in ner_models:
+            return jsonify({"errors" : "Unknown model: " + model})
 
-        if not 'model_files' in g:
-            g.model_files = get_model_files()
+        json_response = {}
 
-        if model not in g.model_files:
-            return jsonify({'error' : 'Unknown model: ' + model})
+        if json_data["data"]["sentences"]:
+            sentences = json_data["data"]["sentences"]
+            sentences = [ner.tokenize(s) for s in sentences]
+            sentences = [s[:ner_models[model].max_sequence_length] for s in sentences]
+            # predict
+            global ner_graphs
+            with ner_graphs[model].as_default():
+                result = ner.predict(ner_models[model], sentences)
+            app.logger.debug('sentences:' + str(result))
+            json_response["sentences"] = result
 
-        app.logger.info('Loading model ...')
-
-        # load keras model
-        if not 'ner_model' in g:
-            g.ner_model = ner.load_ner_model(model)
-
-        app.logger.info('Model loaded.')
-
-        # if tokenize == true tokenize
-
-        # predict
-
-        result = ner.predict(g.ner_model, sentences)
-
-        app.logger.info('Result:' + str(result))
-
-        json_response = {"data": jsonify(result)}
+        if json_data["data"]["tokens"]:
+            sentences = json_data["data"]["tokens"]
+            sentences = [s[:ner_models[model].max_sequence_length] for s in sentences]
+            # predict
+            global ner_graphs
+            with ner_graphs[model].as_default():
+                result = ner.predict(ner_models[model], sentences)
+            app.logger.debug('tokens:' + str(result))
+            json_response["tokens"] = result
 
         return jsonify(json_response)
 

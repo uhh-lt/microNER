@@ -144,30 +144,7 @@ def get_label_from_categorical(a):
         labels.append(label)
     return(labels)
 
-def predict_sequences(model, sentences, level2 = False):
-    steps = 0
-    true_labels = []
-    pred_labels = []
-    all_true_labels = []
-    for s in sentences:
-        if level2:
-            all_true_labels.append([w[2] for w in s])
-        else:
-            all_true_labels.append([w[1] for w in s])
-    all_pred_labels = model.predict_generator(NerSequence(sentences, level2 = level2))
-    
-    for s_id, s in enumerate(all_true_labels):
-        not_padded_true = []
-        not_padded_pred = []
-        predicted_labels = get_label_from_categorical(all_pred_labels[s_id])
-        for t_id, t in enumerate(s):
-            if t != 'PADDING_TOKEN': # skip PADDING_TOKEN 
-                not_padded_true.append(models.label2Idx[t])
-                not_padded_pred.append(predicted_labels[t_id])
-        true_labels.append(not_padded_true)
-        pred_labels.append(not_padded_pred)
-    
-    return(true_labels, pred_labels)
+
 
 
 class NerSequence(Sequence):

@@ -4,4 +4,5 @@ tensorflow
 scikit-learn
 Flask
 flask-bootstrap
+jsonschema
 gunicorn

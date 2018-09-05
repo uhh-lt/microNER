@@ -1,14 +1,12 @@
 {
   "meta" : {
-    "model" : "germeval",
-    "tokenize" : true
+    "model" : "germeval.h5"
   },
   "data" : {
     "sentences" : [
-      [
         "Ich bin Sabine Müllers erster CDU-Generalsekretär.",
         "Tom F. Manteufel wohnt auf der Insel Borkum."
-      ]
-    ]
+    ],
+    "tokens" : [["Ich", "bin", "Franz", ",", "du", "bist", "Micha"], ["Micha"]]
   }
 }
