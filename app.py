@@ -95,8 +95,8 @@ def get_model_files():
 # get models
 ner_models = {}
 ner_graphs = {}
-for model_file in ["germeval.h5"]:
-# for model_file in get_model_files():
+# for model_file in ["germeval.h5"]:
+for model_file in get_model_files():
     app.logger.info('Loading NER model ' + model_file)
     if model_file.startswith("conll"):
         max_sequence = 100
@@ -123,6 +123,8 @@ def list_models():
 def annotate():
 
     if request.method == 'POST':
+
+        global ner_graphs
 
         try:
             json_data = request.get_json()
@@ -157,7 +159,6 @@ def annotate():
             sentences = [ner.tokenize(s) for s in sentences]
             sentences = [s[:ner_models[model].max_sequence_length] for s in sentences]
             # predict
-            global ner_graphs
             with ner_graphs[model].as_default():
                 result = ner.predict(ner_models[model], sentences)
             app.logger.debug('sentences:' + str(result))
@@ -167,7 +168,6 @@ def annotate():
             sentences = json_data["data"]["tokens"]
             sentences = [s[:ner_models[model].max_sequence_length] for s in sentences]
             # predict
-            global ner_graphs
             with ner_graphs[model].as_default():
                 result = ner.predict(ner_models[model], sentences)
             app.logger.debug('tokens:' + str(result))

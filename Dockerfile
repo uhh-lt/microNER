@@ -1,5 +1,5 @@
 FROM ubuntu
-MAINTAINER ragvri
+MAINTAINER grenwi
 
 RUN apt-get update 
 RUN apt-get -y install software-properties-common
@@ -16,20 +16,19 @@ WORKDIR /app/
 EXPOSE 5001
 
 RUN apt-get -y install git-core
-RUN git clone https://github.com/facebookresearch/fastText.git 
 RUN apt-get -y install python3-pip
-RUN python3 -m pip install pybind11
-RUN cd fastText && python3 setup.py install
-RUN cd ..
-RUN apt-get install wget
-RUN wget https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.de.zip
-RUN apt-get -y install unzip
-RUN unzip wiki.de.zip
-RUN rm -rf wiki.de.zip
+RUN pip3 install pybind11
+RUN pip3 install git+https://github.com/facebookresearch/fastText.git
 ADD requirements.txt .
-RUN python3 -m pip install -r requirements.txt
-ADD generator_NER_best.h5 .
-RUN python3 -m pip install jupyter
-RUN python3 -m pip install git+https://www.github.com/keras-team/keras-contrib.git
+RUN pip3 install -r requirements.txt
+RUN pip3 install git+https://www.github.com/keras-team/keras-contrib.git
+ADD scripts/*.py scripts/
+ADD embeddings/wiki.de.bin embeddings/wiki.de.bin
+COPY models/ models/
+COPY templates/ templates/
+ADD app.py .
 
-
+ENV FLASK_APP app.py
+ENV FLASK_DEBUG 0
+# CMD flask run --host 0.0.0.0 --port 5001 --with-threads
+CMD gunicorn -b 0.0.0.0:5001 --worker-connections 1000 --timeout 80 app:app

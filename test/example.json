@@ -1,6 +1,6 @@
 {
   "meta" : {
-    "model" : "germeval.h5"
+    "model" : "germeval-conll.h5"
   },
   "data" : {
     "sentences" : [

@@ -55,7 +55,7 @@ def tokenize(sentence):
     return(words)
 
 
-class NerSequenceGenerator(Sequence):
+class NerPredictGenerator(Sequence):
     def __init__(self, sentence_data, ner_model, batch_size=32):
         self.ner_model = ner_model
         self.sentence_data = sentence_data
@@ -69,10 +69,6 @@ class NerSequenceGenerator(Sequence):
         inds = self.indices[idx * self.batch_size:(idx + 1) * self.batch_size]
         batch_x, batch_y = self.get_processed_data(inds)
         return batch_x, batch_y
-
-    def on_epoch_end(self):
-        if self.shuffle_data:
-            np.random.shuffle(self.indices)
 
     def get_processed_data(self, inds):
 
@@ -176,7 +172,7 @@ def predict_sequences(ner_model, sentences, label2Idx, level2=False):
             all_true_labels.append([w[2] for w in s])
         else:
             all_true_labels.append([w[1] for w in s])
-    all_pred_labels = ner_model.model.predict_generator(NerSequenceGenerator(sentences, ner_model))
+    all_pred_labels = ner_model.model.predict_generator(NerPredictGenerator(sentences, ner_model))
 
     for s_id, s in enumerate(all_true_labels):
         not_padded_true = []
