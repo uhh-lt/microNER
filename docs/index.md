@@ -1,7 +1,7 @@
 # microNER: A microservice for German Named Entity Recognition
 
 We publish several pre-trained models for Named Entity Recognition wrapped into a micro-service based on Docker to allow for easy integration of German NER into other applications via a JSON API. 
-With F-Scores above 82\% for the GermEval'14 dataset and above 85\% for the CoNLL'03 dataset, the micro-service achieves (near) state-of-the-art performance for this task.
+With F-Scores above 82% for the GermEval'14 dataset and above 85% for the CoNLL'03 dataset, the micro-service achieves (near) state-of-the-art performance for this task.
 
 The service relies on bidirectional recurrent neural networks and CRF. For details, see [this paper](https://www.oeaw.ac.at/fileadmin/subsites/academiaecorpora/PDF/konvens18_19.pdf).
 
@@ -92,14 +92,18 @@ Checkout this git repository and run within the project directory
 
 ## Citation
 
-Wiedemann, Gregor; Jindal, Raghav; Biemann, Chris (2018): microNER: A Micro-Service for German Named Entity Recognition based on BiLSTM-CRF. In: Proceedings of the 14th Conference on Natural Language Processing (KONVENS), S. 165–171.
+If you use the micro-service, consider citing this paper:
 
-`
+* Wiedemann, Gregor; Jindal, Raghav; Biemann, Chris (2018): microNER: A Micro-Service for German Named Entity Recognition based on BiLSTM-CRF. In: *Proceedings of the 14th Conference on Natural Language Processing (KONVENS)*, S. 165–171.
+
+```
 @inproceedings{Wiedemann.2018h,
- author = {Wiedemann, Gregor and Jindal, Raghav and Biemann, Chris},
- title = {microNER: A Micro-Service for German Named Entity Recognition based on BiLSTM-CRF},
- pages = {165--171},
- booktitle = {Proceedings of the 14th Conference on Natural Language Processing (KONVENS)},
- year = {2018}
+ author    = {Wiedemann, Gregor and Jindal, Raghav and Biemann, Chris},
+ title     = {microNER: A Micro-Service for German Named Entity Recognition 
+             based on BiLSTM-CRF},
+ pages     = {165--171},
+ booktitle = {Proceedings of the 14th Conference on Natural Language 
+             Processing (KONVENS)},
+ year      = {2018}
 }
-`
+```
