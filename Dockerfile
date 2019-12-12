@@ -18,7 +18,7 @@ EXPOSE 5001
 RUN apt-get -y install git-core
 RUN apt-get -y install python3-pip
 RUN pip3 install pybind11
-RUN pip3 install git+https://github.com/facebookresearch/fastText.git
+# RUN pip3 install git+https://github.com/facebookresearch/fastText.git
 ADD requirements.txt .
 RUN pip3 install -r requirements.txt
 RUN pip3 install git+https://www.github.com/keras-team/keras-contrib.git
@@ -31,4 +31,4 @@ ADD app.py .
 ENV FLASK_APP app.py
 ENV FLASK_DEBUG 0
 # CMD flask run --host 0.0.0.0 --port 5001 --with-threads
-CMD gunicorn -b 0.0.0.0:5001 --worker-connections 1000 --timeout 80 app:app
+CMD gunicorn -b 0.0.0.0:5001 --worker-connections 1000 --timeout 180 app:app
